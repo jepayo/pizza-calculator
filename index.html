@@ -72,6 +72,15 @@
       font-variant-numeric:tabular-nums;
     }
 
+    .note{
+      margin-top:10px;
+      padding:10px 12px;
+      background:#f5f5f5;
+      border-radius:12px;
+      color:#333;
+      font-weight:700;
+    }
+
     details{
       margin-top:16px;
       border:1px solid #eee;
@@ -115,7 +124,7 @@
 
 <header>
   <h1>Calculadora de masa 🍕</h1>
-  <svg class="pizza" viewBox="0 0 120 120">
+  <svg class="pizza" viewBox="0 0 120 120" aria-hidden="true">
     <path d="M22 20 L102 44 L60 108 Z" fill="#f7d48a" stroke="#d1a455" stroke-width="4"/>
     <path d="M22 20 C45 12, 80 18, 102 44" fill="none" stroke="#c7832c" stroke-width="12"/>
     <circle cx="60" cy="60" r="7" fill="#d6453d"/>
@@ -153,6 +162,9 @@
 <div class="section">Starter</div>
 <div id="starter"></div>
 
+<!-- Frase +18h en hora Madrid -->
+<div id="readyNote" class="note"></div>
+
 <details>
   <summary>⚙️ Configurar porcentajes</summary>
   <div class="cfg" id="cfg"></div>
@@ -163,7 +175,9 @@
 
 <script>
 const DEC = 2;
-const STORAGE = 'pizza_pct_v2';
+const STORAGE = 'pizza_pct_v3';
+const MADRID_TZ = 'Europe/Madrid';
+const STARTER_HOURS = 18;
 
 const DEFAULTS = {
   harinaMasa:54.20,
@@ -171,7 +185,7 @@ const DEFAULTS = {
   levaduraMasa:0.27,
   salMasa:1.08,
   starterTotal:10.84,
-  perdida:0,
+
   harinaStarter:5.2942,
   aguaStarter:5.2942,
   levaduraStarter:0.0135
@@ -184,14 +198,39 @@ const r = n => Number(n.toFixed(DEC));
 const g = (t,p) => t * p / 100;
 
 function row(label,val){
-  return `<div class="row"><span>${label}</span><span>${r(val).toFixed(DEC)} g</span></div>`;
+  return `<div class="row"><span>${label}</span><span>${r(val).toFixed(DEC).replace('.', ',')} g</span></div>`;
+}
+
+function formatReadyPlus18h(){
+  const ready = new Date(Date.now() + STARTER_HOURS * 60 * 60 * 1000);
+
+  const weekday = new Intl.DateTimeFormat('es-ES', {
+    weekday: 'long',
+    timeZone: MADRID_TZ
+  }).format(ready);
+
+  const dayNum = new Intl.DateTimeFormat('es-ES', {
+    day: '2-digit',
+    timeZone: MADRID_TZ
+  }).format(ready);
+
+  const time = new Intl.DateTimeFormat('es-ES', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: MADRID_TZ
+  }).format(ready);
+
+  // Ejemplo: "Listo el martes 20 a las 12:30"
+  return `Listo el ${weekday} ${dayNum} a las ${time}`;
 }
 
 function calc(){
   const total = pizzas.value * gpp.value;
+
   pizzasVal.textContent = pizzas.value;
   gppVal.textContent = gpp.value;
-  totalVal.textContent = r(total).toFixed(DEC);
+  totalVal.textContent = r(total).toFixed(DEC).replace('.', ',');
 
   masa.innerHTML = `
     ${row('Harina', g(total,PCT.harinaMasa))}
@@ -199,7 +238,6 @@ function calc(){
     ${row('Levadura', g(total,PCT.levaduraMasa))}
     ${row('Sal', g(total,PCT.salMasa))}
     ${row('Starter total', g(total,PCT.starterTotal))}
-    ${row('Pérdida', 0)}
   `;
 
   starter.innerHTML = `
@@ -207,14 +245,27 @@ function calc(){
     ${row('Agua starter', g(total,PCT.aguaStarter))}
     ${row('Levadura starter', g(total,PCT.levaduraStarter))}
   `;
+
+  readyNote.textContent = formatReadyPlus18h();
 }
 
 function buildConfig(){
   cfg.innerHTML = '';
-  for (const k in PCT){
+  const labels = {
+    harinaMasa: 'harinaMasa (%)',
+    aguaMasa: 'aguaMasa (%)',
+    levaduraMasa: 'levaduraMasa (%)',
+    salMasa: 'salMasa (%)',
+    starterTotal: 'starterTotal (%)',
+    harinaStarter: 'harinaStarter (%)',
+    aguaStarter: 'aguaStarter (%)',
+    levaduraStarter: 'levaduraStarter (%)'
+  };
+
+  for (const k in DEFAULTS){
     cfg.innerHTML += `
       <div>
-        <label>${k}</label>
+        <label>${labels[k] || k}</label>
         <input data-k="${k}" type="number" step="0.0001" value="${PCT[k]}">
       </div>`;
   }
@@ -232,6 +283,11 @@ save.onclick = ()=>{
 };
 
 pizzas.oninput = gpp.oninput = calc;
+
+// Actualiza el “Listo…” cada minuto para que no se quede viejo si la app está abierta
+setInterval(() => {
+  readyNote.textContent = formatReadyPlus18h();
+}, 60 * 1000);
 
 buildConfig();
 calc();
