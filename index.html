@@ -46,6 +46,8 @@
       display:flex;
       justify-content:space-between;
       font-weight:600;
+      gap:10px;
+      align-items:baseline;
     }
     input[type=range]{ width:100%; }
 
@@ -54,6 +56,7 @@
       border-radius:999px;
       padding:4px 10px;
       font-variant-numeric:tabular-nums;
+      white-space:nowrap;
     }
 
     .total{
@@ -86,6 +89,41 @@
     }
     .note strong{ font-weight:900; }
 
+    .note-tools{
+      margin-top:10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .note-tools label{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-weight:700;
+      user-select:none;
+    }
+    .note-tools input[type="checkbox"]{
+      transform: scale(1.2);
+    }
+    .btn{
+      border:1px solid #ddd;
+      background:#fff;
+      border-radius:12px;
+      padding:8px 10px;
+      font-weight:800;
+      cursor:pointer;
+    }
+    .btn:active{ transform: translateY(1px); }
+
+    .tiny{
+      margin-top:6px;
+      color:#666;
+      font-size:.86rem;
+      font-weight:600;
+    }
+
     details{
       margin-top:16px;
       border:1px solid #eee;
@@ -103,7 +141,7 @@
       grid-template-columns:1fr 1fr;
       gap:10px;
     }
-    .cfg label{ font-size:.85rem; }
+    .cfg label{ font-size:.85rem; font-weight:700; }
     .cfg input{
       width:100%;
       padding:8px;
@@ -111,15 +149,16 @@
       border:1px solid #ccc;
       font-variant-numeric:tabular-nums;
     }
-    button{
+    button.save{
       margin-top:10px;
       padding:10px;
       border-radius:12px;
       border:none;
-      font-weight:700;
+      font-weight:800;
       background:#111;
       color:#fff;
       width:100%;
+      cursor:pointer;
     }
   </style>
 </head>
@@ -141,7 +180,7 @@
 <div class="controls">
   <div class="control">
     <div class="top">
-      <label>Pizzas</label>
+      <label for="pizzas">Pizzas</label>
       <span class="pill"><span id="pizzasVal">2</span></span>
     </div>
     <input id="pizzas" type="range" min="1" max="24" step="1" value="2">
@@ -149,7 +188,7 @@
 
   <div class="control">
     <div class="top">
-      <label>Gramos por pizza</label>
+      <label for="gpp">Gramos por pizza</label>
       <span class="pill"><span id="gppVal">250</span> g</span>
     </div>
     <input id="gpp" type="range" min="150" max="300" step="5" value="250">
@@ -157,33 +196,46 @@
 
   <div class="total">
     <span>Total</span>
-    <span><span id="totalVal">0</span> g</span>
+    <span><span id="totalVal">0,00</span> g</span>
   </div>
 </div>
 
 <div class="section">Masa</div>
 <div id="masa"></div>
 
-<!-- Nota +1 / +2 días (noches en nevera, sin horas) -->
+<div class="note-tools">
+  <label><input id="masaLock" type="checkbox"> Fijar (masa)</label>
+  <button class="btn" id="masaReset" type="button">Reset</button>
+</div>
+<div id="masaTiny" class="tiny" style="display:none;"></div>
+
+<!-- Nota masa +1/+2 días -->
 <div id="masaNote" class="note"></div>
 
 <div class="section">Starter</div>
 <div id="starter"></div>
 
-<!-- Nota +18h en hora Madrid -->
+<div class="note-tools">
+  <label><input id="starterLock" type="checkbox"> Fijar (starter)</label>
+  <button class="btn" id="starterReset" type="button">Reset</button>
+</div>
+<div id="starterTiny" class="tiny" style="display:none;"></div>
+
+<!-- Nota starter +18h -->
 <div id="readyNote" class="note"></div>
 
 <details>
   <summary>⚙️ Configurar porcentajes</summary>
   <div class="cfg" id="cfg"></div>
-  <button id="save">Guardar configuración</button>
+  <button class="save" id="save">Guardar configuración</button>
 </details>
 
 </div>
 
 <script>
 const DEC = 2;
-const STORAGE = 'pizza_pct_v4';
+const STORAGE_PCT = 'pizza_pct_v5';
+const STORAGE_LOCK = 'pizza_locks_v1';
 const MADRID_TZ = 'Europe/Madrid';
 const STARTER_HOURS = 18;
 
@@ -199,14 +251,28 @@ const DEFAULTS = {
   levaduraStarter:0.0135
 };
 
-let PCT = JSON.parse(localStorage.getItem(STORAGE)) || {...DEFAULTS};
+let PCT = safeJSON(localStorage.getItem(STORAGE_PCT)) || {...DEFAULTS};
+PCT = { ...DEFAULTS, ...PCT }; // merge
 
+let LOCKS = safeJSON(localStorage.getItem(STORAGE_LOCK)) || {
+  starter: { locked:false, preparedAt:null },
+  masa: { locked:false, preparedAt:null }
+};
+
+// Helpers
 const $ = id => document.getElementById(id);
 const r = n => Number(n.toFixed(DEC));
 const g = (t,p) => t * p / 100;
 
+function safeJSON(s){
+  try{ return JSON.parse(s); }catch{ return null; }
+}
+function fmtNumber(n){
+  return r(n).toFixed(DEC).replace('.', ',');
+}
+
 function row(label,val){
-  return `<div class="row"><span>${label}</span><span>${r(val).toFixed(DEC).replace('.', ',')} g</span></div>`;
+  return `<div class="row"><span>${label}</span><span>${fmtNumber(val)} g</span></div>`;
 }
 
 function fmtWeekdayAndDay(dateObj){
@@ -223,59 +289,77 @@ function fmtWeekdayAndDay(dateObj){
   return { weekday, dayNum };
 }
 
-function formatReadyPlus18h(){
-  const ready = new Date(Date.now() + STARTER_HOURS * 60 * 60 * 1000);
-
-  const { weekday, dayNum } = fmtWeekdayAndDay(ready);
+function fmtDateTimeMadrid(dateObj){
+  // "martes 20 a las 12:30"
+  const { weekday, dayNum } = fmtWeekdayAndDay(dateObj);
 
   const time = new Intl.DateTimeFormat('es-ES', {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
     timeZone: MADRID_TZ
-  }).format(ready);
+  }).format(dateObj);
 
-  return `Listo el ${weekday} ${dayNum} a las ${time}`;
+  return `${weekday} ${dayNum} a las ${time}`;
 }
 
-function formatMasaPlusDays(){
-  const d1 = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000);
-  const d2 = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+function fmtPreparedSmall(dateObj){
+  // más detalle: "Preparado el martes 20 a las 09:12"
+  return `Preparado el ${fmtDateTimeMadrid(dateObj)}`;
+}
 
+function computeTotal(){
+  return Number($("pizzas").value) * Number($("gpp").value);
+}
+
+// Textos “ready”
+function starterReadyText(baseMs){
+  const ready = new Date(baseMs + STARTER_HOURS * 60 * 60 * 1000);
+  return `Listo el ${fmtDateTimeMadrid(ready)}`;
+}
+
+function masaReadyHTML(baseMs){
+  // “noches en nevera”: +1 y +2 días, sin horas
+  const d1 = new Date(baseMs + 1 * 24 * 60 * 60 * 1000);
+  const d2 = new Date(baseMs + 2 * 24 * 60 * 60 * 1000);
   const a = fmtWeekdayAndDay(d1);
   const b = fmtWeekdayAndDay(d2);
-
-  // Segunda fecha en negrita
   return `Lista el ${a.weekday} ${a.dayNum} ¡o mejor!, el <strong>${b.weekday} ${b.dayNum}</strong>.`;
 }
 
-function calc(){
-  const total = pizzas.value * gpp.value;
+// Persist locks
+function saveLocks(){
+  localStorage.setItem(STORAGE_LOCK, JSON.stringify(LOCKS));
+}
+function savePct(){
+  localStorage.setItem(STORAGE_PCT, JSON.stringify(PCT));
+}
 
-  pizzasVal.textContent = pizzas.value;
-  gppVal.textContent = gpp.value;
-  totalVal.textContent = r(total).toFixed(DEC).replace('.', ',');
+// UI sync
+function syncLockUI(){
+  $("starterLock").checked = !!LOCKS.starter.locked;
+  $("masaLock").checked = !!LOCKS.masa.locked;
 
-  masa.innerHTML = `
-    ${row('Harina', g(total,PCT.harinaMasa))}
-    ${row('Agua', g(total,PCT.aguaMasa))}
-    ${row('Levadura', g(total,PCT.levaduraMasa))}
-    ${row('Sal', g(total,PCT.salMasa))}
-    ${row('Starter total', g(total,PCT.starterTotal))}
-  `;
+  // tiny lines
+  if (LOCKS.starter.locked && LOCKS.starter.preparedAt){
+    $("starterTiny").style.display = "block";
+    $("starterTiny").textContent = fmtPreparedSmall(new Date(LOCKS.starter.preparedAt));
+  } else {
+    $("starterTiny").style.display = "none";
+    $("starterTiny").textContent = "";
+  }
 
-  starter.innerHTML = `
-    ${row('Harina starter', g(total,PCT.harinaStarter))}
-    ${row('Agua starter', g(total,PCT.aguaStarter))}
-    ${row('Levadura starter', g(total,PCT.levaduraStarter))}
-  `;
-
-  // Notas
-  masaNote.innerHTML = formatMasaPlusDays();
-  readyNote.textContent = formatReadyPlus18h();
+  if (LOCKS.masa.locked && LOCKS.masa.preparedAt){
+    $("masaTiny").style.display = "block";
+    $("masaTiny").textContent = fmtPreparedSmall(new Date(LOCKS.masa.preparedAt));
+  } else {
+    $("masaTiny").style.display = "none";
+    $("masaTiny").textContent = "";
+  }
 }
 
 function buildConfig(){
+  const cfg = $("cfg");
   cfg.innerHTML = '';
   const labels = {
     harinaMasa: 'harinaMasa (%)',
@@ -297,25 +381,99 @@ function buildConfig(){
   }
 }
 
-cfg.addEventListener('input', e=>{
-  if(e.target.dataset.k){
-    PCT[e.target.dataset.k] = Number(e.target.value);
-    calc();
-  }
+function calc(){
+  const total = computeTotal();
+
+  $("pizzasVal").textContent = $("pizzas").value;
+  $("gppVal").textContent = $("gpp").value;
+  $("totalVal").textContent = fmtNumber(total);
+
+  $("masa").innerHTML = `
+    ${row('Harina', g(total,PCT.harinaMasa))}
+    ${row('Agua', g(total,PCT.aguaMasa))}
+    ${row('Levadura', g(total,PCT.levaduraMasa))}
+    ${row('Sal', g(total,PCT.salMasa))}
+    ${row('Starter total', g(total,PCT.starterTotal))}
+  `;
+
+  $("starter").innerHTML = `
+    ${row('Harina starter', g(total,PCT.harinaStarter))}
+    ${row('Agua starter', g(total,PCT.aguaStarter))}
+    ${row('Levadura starter', g(total,PCT.levaduraStarter))}
+  `;
+
+  // Base para tiempos: ahora o fecha fijada
+  const nowMs = Date.now();
+  const starterBase = (LOCKS.starter.locked && LOCKS.starter.preparedAt) ? LOCKS.starter.preparedAt : nowMs;
+  const masaBase = (LOCKS.masa.locked && LOCKS.masa.preparedAt) ? LOCKS.masa.preparedAt : nowMs;
+
+  $("readyNote").textContent = starterReadyText(starterBase);
+  $("masaNote").innerHTML = masaReadyHTML(masaBase);
+
+  syncLockUI();
+}
+
+// Events
+$("pizzas").addEventListener("input", calc);
+$("gpp").addEventListener("input", calc);
+
+// Config inputs live
+$("cfg").addEventListener("input", (e) => {
+  const k = e.target?.dataset?.k;
+  if (!k) return;
+  PCT[k] = Number(e.target.value);
+  calc();
 });
 
-save.onclick = ()=>{
-  localStorage.setItem(STORAGE, JSON.stringify(PCT));
-};
+$("save").addEventListener("click", () => {
+  savePct();
+});
 
-pizzas.oninput = gpp.oninput = calc;
+// Lock checkboxes
+$("starterLock").addEventListener("change", (e) => {
+  if (e.target.checked){
+    LOCKS.starter.locked = true;
+    LOCKS.starter.preparedAt = Date.now();
+  } else {
+    // si desmarcas, vuelve a modo live pero mantiene preparedAt por si luego quieres (opcional).
+    LOCKS.starter.locked = false;
+  }
+  saveLocks();
+  calc();
+});
 
-// Actualiza los textos cada minuto para que no queden viejos
+$("masaLock").addEventListener("change", (e) => {
+  if (e.target.checked){
+    LOCKS.masa.locked = true;
+    LOCKS.masa.preparedAt = Date.now();
+  } else {
+    LOCKS.masa.locked = false;
+  }
+  saveLocks();
+  calc();
+});
+
+// Reset buttons (borra todo y vuelve a live)
+$("starterReset").addEventListener("click", () => {
+  LOCKS.starter = { locked:false, preparedAt:null };
+  saveLocks();
+  calc();
+});
+
+$("masaReset").addEventListener("click", () => {
+  LOCKS.masa = { locked:false, preparedAt:null };
+  saveLocks();
+  calc();
+});
+
+// Refresco cada minuto SOLO para las secciones no fijadas
 setInterval(() => {
-  masaNote.innerHTML = formatMasaPlusDays();
-  readyNote.textContent = formatReadyPlus18h();
+  const anyLive = (!LOCKS.starter.locked) || (!LOCKS.masa.locked);
+  if (!anyLive) return;
+  calc();
 }, 60 * 1000);
 
+// Init
 buildConfig();
 calc();
 </script>
