@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Calculadora de Masa 🍕</title>
+
+  <style>
+    body{
+      margin:0;
+      padding:16px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont;
+      background:#fafafa;
+      color:#111;
+    }
+    .card{
+      max-width:560px;
+      margin:auto;
+      background:#fff;
+      border-radius:16px;
+      padding:16px;
+      box-shadow:0 2px 14px rgba(0,0,0,.06);
+    }
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+    }
+    h1{ font-size:1.2rem; margin:0; }
+
+    /* Pizza */
+    .pizza{
+      width:64px;
+      animation:wobble 2.5s ease-in-out infinite;
+      transform-origin:50% 60%;
+    }
+    @keyframes wobble{
+      0%,100%{transform:rotate(-3deg)}
+      50%{transform:rotate(3deg)}
+    }
+
+    .controls{ margin-top:12px; }
+    .control{ margin-bottom:14px; }
+    .top{
+      display:flex;
+      justify-content:space-between;
+      font-weight:600;
+    }
+    input[type=range]{ width:100%; }
+
+    .pill{
+      background:#eee;
+      border-radius:999px;
+      padding:4px 10px;
+      font-variant-numeric:tabular-nums;
+    }
+
+    .total{
+      margin-top:8px;
+      font-weight:800;
+      display:flex;
+      justify-content:space-between;
+    }
+
+    .section{ margin-top:16px; font-weight:800; }
+    .row{
+      display:flex;
+      justify-content:space-between;
+      padding:6px 0;
+      border-bottom:1px dashed #eee;
+      font-variant-numeric:tabular-nums;
+    }
+
+    details{
+      margin-top:16px;
+      border:1px solid #eee;
+      border-radius:14px;
+      padding:8px;
+    }
+    summary{
+      font-weight:800;
+      cursor:pointer;
+    }
+
+    .cfg{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    .cfg label{ font-size:.85rem; }
+    .cfg input{
+      width:100%;
+      padding:8px;
+      border-radius:10px;
+      border:1px solid #ccc;
+      font-variant-numeric:tabular-nums;
+    }
+    button{
+      margin-top:10px;
+      padding:10px;
+      border-radius:12px;
+      border:none;
+      font-weight:700;
+      background:#111;
+      color:#fff;
+      width:100%;
+    }
+  </style>
+</head>
+
+<body>
+<div class="card">
+
+<header>
+  <h1>Calculadora de masa 🍕</h1>
+  <svg class="pizza" viewBox="0 0 120 120">
+    <path d="M22 20 L102 44 L60 108 Z" fill="#f7d48a" stroke="#d1a455" stroke-width="4"/>
+    <path d="M22 20 C45 12, 80 18, 102 44" fill="none" stroke="#c7832c" stroke-width="12"/>
+    <circle cx="60" cy="60" r="7" fill="#d6453d"/>
+    <circle cx="70" cy="75" r="7" fill="#d6453d"/>
+    <circle cx="50" cy="80" r="6" fill="#d6453d"/>
+  </svg>
+</header>
+
+<div class="controls">
+  <div class="control">
+    <div class="top">
+      <label>Pizzas</label>
+      <span class="pill"><span id="pizzasVal">2</span></span>
+    </div>
+    <input id="pizzas" type="range" min="1" max="24" step="1" value="2">
+  </div>
+
+  <div class="control">
+    <div class="top">
+      <label>Gramos por pizza</label>
+      <span class="pill"><span id="gppVal">250</span> g</span>
+    </div>
+    <input id="gpp" type="range" min="150" max="300" step="5" value="250">
+  </div>
+
+  <div class="total">
+    <span>Total</span>
+    <span><span id="totalVal">0</span> g</span>
+  </div>
+</div>
+
+<div class="section">Masa</div>
+<div id="masa"></div>
+
+<div class="section">Starter</div>
+<div id="starter"></div>
+
+<details>
+  <summary>⚙️ Configurar porcentajes</summary>
+  <div class="cfg" id="cfg"></div>
+  <button id="save">Guardar configuración</button>
+</details>
+
+</div>
+
+<script>
+const DEC = 2;
+const STORAGE = 'pizza_pct_v2';
+
+const DEFAULTS = {
+  harinaMasa:54.20,
+  aguaMasa:33.60,
+  levaduraMasa:0.27,
+  salMasa:1.08,
+  starterTotal:10.84,
+  perdida:0,
+  harinaStarter:5.2942,
+  aguaStarter:5.2942,
+  levaduraStarter:0.0135
+};
+
+let PCT = JSON.parse(localStorage.getItem(STORAGE)) || {...DEFAULTS};
+
+const $ = id => document.getElementById(id);
+const r = n => Number(n.toFixed(DEC));
+const g = (t,p) => t * p / 100;
+
+function row(label,val){
+  return `<div class="row"><span>${label}</span><span>${r(val).toFixed(DEC)} g</span></div>`;
+}
+
+function calc(){
+  const total = pizzas.value * gpp.value;
+  pizzasVal.textContent = pizzas.value;
+  gppVal.textContent = gpp.value;
+  totalVal.textContent = r(total).toFixed(DEC);
+
+  masa.innerHTML = `
+    ${row('Harina', g(total,PCT.harinaMasa))}
+    ${row('Agua', g(total,PCT.aguaMasa))}
+    ${row('Levadura', g(total,PCT.levaduraMasa))}
+    ${row('Sal', g(total,PCT.salMasa))}
+    ${row('Starter total', g(total,PCT.starterTotal))}
+    ${row('Pérdida', 0)}
+  `;
+
+  starter.innerHTML = `
+    ${row('Harina starter', g(total,PCT.harinaStarter))}
+    ${row('Agua starter', g(total,PCT.aguaStarter))}
+    ${row('Levadura starter', g(total,PCT.levaduraStarter))}
+  `;
+}
+
+function buildConfig(){
+  cfg.innerHTML = '';
+  for (const k in PCT){
+    cfg.innerHTML += `
+      <div>
+        <label>${k}</label>
+        <input data-k="${k}" type="number" step="0.0001" value="${PCT[k]}">
+      </div>`;
+  }
+}
+
+cfg.addEventListener('input', e=>{
+  if(e.target.dataset.k){
+    PCT[e.target.dataset.k] = Number(e.target.value);
+    calc();
+  }
+});
+
+save.onclick = ()=>{
+  localStorage.setItem(STORAGE, JSON.stringify(PCT));
+};
+
+pizzas.oninput = gpp.oninput = calc;
+
+buildConfig();
+calc();
+</script>
+</body>
+</html>
