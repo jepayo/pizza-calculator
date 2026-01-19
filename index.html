@@ -63,7 +63,10 @@
       justify-content:space-between;
     }
 
-    .section{ margin-top:16px; font-weight:800; }
+    .section{
+      margin-top:16px;
+      font-weight:800;
+    }
     .row{
       display:flex;
       justify-content:space-between;
@@ -79,7 +82,9 @@
       border-radius:12px;
       color:#333;
       font-weight:700;
+      line-height: 1.25;
     }
+    .note strong{ font-weight:900; }
 
     details{
       margin-top:16px;
@@ -159,10 +164,13 @@
 <div class="section">Masa</div>
 <div id="masa"></div>
 
+<!-- Nota +1 / +2 días (noches en nevera, sin horas) -->
+<div id="masaNote" class="note"></div>
+
 <div class="section">Starter</div>
 <div id="starter"></div>
 
-<!-- Frase +18h en hora Madrid -->
+<!-- Nota +18h en hora Madrid -->
 <div id="readyNote" class="note"></div>
 
 <details>
@@ -175,7 +183,7 @@
 
 <script>
 const DEC = 2;
-const STORAGE = 'pizza_pct_v3';
+const STORAGE = 'pizza_pct_v4';
 const MADRID_TZ = 'Europe/Madrid';
 const STARTER_HOURS = 18;
 
@@ -201,18 +209,24 @@ function row(label,val){
   return `<div class="row"><span>${label}</span><span>${r(val).toFixed(DEC).replace('.', ',')} g</span></div>`;
 }
 
-function formatReadyPlus18h(){
-  const ready = new Date(Date.now() + STARTER_HOURS * 60 * 60 * 1000);
-
+function fmtWeekdayAndDay(dateObj){
   const weekday = new Intl.DateTimeFormat('es-ES', {
     weekday: 'long',
     timeZone: MADRID_TZ
-  }).format(ready);
+  }).format(dateObj);
 
   const dayNum = new Intl.DateTimeFormat('es-ES', {
     day: '2-digit',
     timeZone: MADRID_TZ
-  }).format(ready);
+  }).format(dateObj);
+
+  return { weekday, dayNum };
+}
+
+function formatReadyPlus18h(){
+  const ready = new Date(Date.now() + STARTER_HOURS * 60 * 60 * 1000);
+
+  const { weekday, dayNum } = fmtWeekdayAndDay(ready);
 
   const time = new Intl.DateTimeFormat('es-ES', {
     hour: '2-digit',
@@ -221,8 +235,18 @@ function formatReadyPlus18h(){
     timeZone: MADRID_TZ
   }).format(ready);
 
-  // Ejemplo: "Listo el martes 20 a las 12:30"
   return `Listo el ${weekday} ${dayNum} a las ${time}`;
+}
+
+function formatMasaPlusDays(){
+  const d1 = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000);
+  const d2 = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+
+  const a = fmtWeekdayAndDay(d1);
+  const b = fmtWeekdayAndDay(d2);
+
+  // Segunda fecha en negrita
+  return `Lista el ${a.weekday} ${a.dayNum} ¡o mejor!, el <strong>${b.weekday} ${b.dayNum}</strong>.`;
 }
 
 function calc(){
@@ -246,6 +270,8 @@ function calc(){
     ${row('Levadura starter', g(total,PCT.levaduraStarter))}
   `;
 
+  // Notas
+  masaNote.innerHTML = formatMasaPlusDays();
   readyNote.textContent = formatReadyPlus18h();
 }
 
@@ -284,8 +310,9 @@ save.onclick = ()=>{
 
 pizzas.oninput = gpp.oninput = calc;
 
-// Actualiza el “Listo…” cada minuto para que no se quede viejo si la app está abierta
+// Actualiza los textos cada minuto para que no queden viejos
 setInterval(() => {
+  masaNote.innerHTML = formatMasaPlusDays();
   readyNote.textContent = formatReadyPlus18h();
 }, 60 * 1000);
 
