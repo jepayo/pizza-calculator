@@ -7,158 +7,109 @@
 
   <style>
     body{
-      margin:0;
-      padding:16px;
+      margin:0; padding:16px;
       font-family: system-ui, -apple-system, BlinkMacSystemFont;
-      background:#fafafa;
-      color:#111;
+      background:#fafafa; color:#111;
     }
     .card{
-      max-width:560px;
-      margin:auto;
-      background:#fff;
-      border-radius:16px;
-      padding:16px;
-      box-shadow:0 2px 14px rgba(0,0,0,.06);
+      max-width:560px; margin:auto;
+      background:#fff; border-radius:16px;
+      padding:16px; box-shadow:0 2px 14px rgba(0,0,0,.06);
     }
-    header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-    }
+    header{ display:flex; justify-content:space-between; align-items:center; gap:12px; }
     h1{ font-size:1.2rem; margin:0; }
 
     /* Pizza */
-    .pizza{
-      width:64px;
-      animation:wobble 2.5s ease-in-out infinite;
-      transform-origin:50% 60%;
-    }
-    @keyframes wobble{
-      0%,100%{transform:rotate(-3deg)}
-      50%{transform:rotate(3deg)}
-    }
+    .pizza{ width:64px; animation:wobble 2.5s ease-in-out infinite; transform-origin:50% 60%; }
+    @keyframes wobble{ 0%,100%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} }
 
     .controls{ margin-top:12px; }
     .control{ margin-bottom:14px; }
-    .top{
-      display:flex;
-      justify-content:space-between;
-      font-weight:600;
-      gap:10px;
-      align-items:baseline;
-    }
+    .top{ display:flex; justify-content:space-between; font-weight:600; gap:10px; align-items:baseline; }
     input[type=range]{ width:100%; }
+    .pill{ background:#eee; border-radius:999px; padding:4px 10px; font-variant-numeric:tabular-nums; white-space:nowrap; }
 
-    .pill{
-      background:#eee;
-      border-radius:999px;
-      padding:4px 10px;
-      font-variant-numeric:tabular-nums;
-      white-space:nowrap;
-    }
+    .total{ margin-top:8px; font-weight:800; display:flex; justify-content:space-between; }
 
-    .total{
-      margin-top:8px;
-      font-weight:800;
-      display:flex;
-      justify-content:space-between;
-    }
-
-    .section{
-      margin-top:16px;
-      font-weight:800;
-    }
+    .section{ margin-top:16px; font-weight:800; }
     .row{
-      display:flex;
-      justify-content:space-between;
-      padding:6px 0;
-      border-bottom:1px dashed #eee;
+      display:flex; justify-content:space-between;
+      padding:6px 0; border-bottom:1px dashed #eee;
       font-variant-numeric:tabular-nums;
     }
 
     .note{
-      margin-top:10px;
-      padding:10px 12px;
-      background:#f5f5f5;
-      border-radius:12px;
-      color:#333;
-      font-weight:700;
-      line-height: 1.25;
+      margin-top:10px; padding:10px 12px;
+      background:#f5f5f5; border-radius:12px;
+      color:#333; font-weight:700; line-height: 1.25;
     }
     .note strong{ font-weight:900; }
 
-    .note-tools{
+    .tools{
       margin-top:10px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      flex-wrap:wrap;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px; flex-wrap:wrap;
     }
-    .note-tools label{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      font-weight:700;
-      user-select:none;
+    .tools .left{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .tools label{
+      display:flex; align-items:center; gap:8px;
+      font-weight:800; user-select:none;
     }
-    .note-tools input[type="checkbox"]{
-      transform: scale(1.2);
-    }
+    .tools input[type="checkbox"]{ transform: scale(1.2); }
+
     .btn{
-      border:1px solid #ddd;
-      background:#fff;
-      border-radius:12px;
-      padding:8px 10px;
-      font-weight:800;
-      cursor:pointer;
+      border:1px solid #ddd; background:#fff;
+      border-radius:12px; padding:8px 10px;
+      font-weight:900; cursor:pointer;
     }
     .btn:active{ transform: translateY(1px); }
+    .btn.primary{ background:#111; color:#fff; border-color:#111; }
+    .btn[disabled]{ opacity:.5; cursor:not-allowed; }
 
-    .tiny{
-      margin-top:6px;
-      color:#666;
-      font-size:.86rem;
-      font-weight:600;
-    }
+    .tiny{ margin-top:6px; color:#666; font-size:.86rem; font-weight:650; }
 
-    details{
-      margin-top:16px;
-      border:1px solid #eee;
-      border-radius:14px;
-      padding:8px;
-    }
-    summary{
-      font-weight:800;
-      cursor:pointer;
-    }
-
+    details{ margin-top:16px; border:1px solid #eee; border-radius:14px; padding:8px; }
+    summary{ font-weight:800; cursor:pointer; }
     .cfg{
       margin-top:10px;
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
+      display:grid; grid-template-columns:1fr 1fr; gap:10px;
     }
-    .cfg label{ font-size:.85rem; font-weight:700; }
+    .cfg label{ font-size:.85rem; font-weight:800; }
     .cfg input{
-      width:100%;
-      padding:8px;
-      border-radius:10px;
-      border:1px solid #ccc;
+      width:100%; padding:8px;
+      border-radius:10px; border:1px solid #ccc;
       font-variant-numeric:tabular-nums;
     }
     button.save{
-      margin-top:10px;
+      margin-top:10px; padding:10px;
+      border-radius:12px; border:none;
+      font-weight:900; background:#111; color:#fff;
+      width:100%; cursor:pointer;
+    }
+
+    /* Modal */
+    .modalOverlay{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.35);
+      display:none; align-items:center; justify-content:center;
+      padding:16px; z-index:9999;
+    }
+    .modal{
+      width:min(520px, 100%);
+      background:#fff; border-radius:16px;
+      padding:14px; box-shadow:0 8px 30px rgba(0,0,0,.25);
+    }
+    .modal h2{ margin:0 0 10px; font-size:1.05rem; }
+    .modal .grid{ display:grid; gap:10px; }
+    .modal input[type="datetime-local"]{
+      width:100%;
       padding:10px;
       border-radius:12px;
-      border:none;
-      font-weight:800;
-      background:#111;
-      color:#fff;
-      width:100%;
-      cursor:pointer;
+      border:1px solid #ccc;
+      font-size:1rem;
+    }
+    .modal .actions{
+      display:flex; gap:10px; justify-content:flex-end; margin-top:10px; flex-wrap:wrap;
     }
   </style>
 </head>
@@ -203,25 +154,27 @@
 <div class="section">Masa</div>
 <div id="masa"></div>
 
-<div class="note-tools">
-  <label><input id="masaLock" type="checkbox"> Fijar (masa)</label>
+<div class="tools">
+  <div class="left">
+    <label><input id="masaLock" type="checkbox"> Preparada (masa)</label>
+    <button class="btn" id="masaEdit" type="button">Editar</button>
+  </div>
   <button class="btn" id="masaReset" type="button">Reset</button>
 </div>
 <div id="masaTiny" class="tiny" style="display:none;"></div>
-
-<!-- Nota masa +1/+2 días -->
 <div id="masaNote" class="note"></div>
 
 <div class="section">Starter</div>
 <div id="starter"></div>
 
-<div class="note-tools">
-  <label><input id="starterLock" type="checkbox"> Fijar (starter)</label>
+<div class="tools">
+  <div class="left">
+    <label><input id="starterLock" type="checkbox"> Preparado (starter)</label>
+    <button class="btn" id="starterEdit" type="button">Editar</button>
+  </div>
   <button class="btn" id="starterReset" type="button">Reset</button>
 </div>
 <div id="starterTiny" class="tiny" style="display:none;"></div>
-
-<!-- Nota starter +18h -->
 <div id="readyNote" class="note"></div>
 
 <details>
@@ -232,10 +185,25 @@
 
 </div>
 
+<!-- Modal -->
+<div class="modalOverlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <h2 id="modalTitle">Editar fecha/hora</h2>
+    <div class="grid">
+      <div class="tiny" id="modalHint"></div>
+      <input id="modalDatetime" type="datetime-local">
+      <div class="actions">
+        <button class="btn" id="modalCancel" type="button">Cancelar</button>
+        <button class="btn primary" id="modalOk" type="button">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 const DEC = 2;
-const STORAGE_PCT = 'pizza_pct_v5';
-const STORAGE_LOCK = 'pizza_locks_v1';
+const STORAGE_PCT = 'pizza_pct_v6';
+const STORAGE_LOCK = 'pizza_locks_v2';
 const MADRID_TZ = 'Europe/Madrid';
 const STARTER_HOURS = 18;
 
@@ -245,81 +213,69 @@ const DEFAULTS = {
   levaduraMasa:0.27,
   salMasa:1.08,
   starterTotal:10.84,
-
   harinaStarter:5.2942,
   aguaStarter:5.2942,
   levaduraStarter:0.0135
 };
 
 let PCT = safeJSON(localStorage.getItem(STORAGE_PCT)) || {...DEFAULTS};
-PCT = { ...DEFAULTS, ...PCT }; // merge
+PCT = { ...DEFAULTS, ...PCT };
 
 let LOCKS = safeJSON(localStorage.getItem(STORAGE_LOCK)) || {
   starter: { locked:false, preparedAt:null },
   masa: { locked:false, preparedAt:null }
 };
 
-// Helpers
 const $ = id => document.getElementById(id);
 const r = n => Number(n.toFixed(DEC));
 const g = (t,p) => t * p / 100;
 
-function safeJSON(s){
-  try{ return JSON.parse(s); }catch{ return null; }
-}
-function fmtNumber(n){
-  return r(n).toFixed(DEC).replace('.', ',');
-}
+function safeJSON(s){ try{ return JSON.parse(s); }catch{ return null; } }
+function savePct(){ localStorage.setItem(STORAGE_PCT, JSON.stringify(PCT)); }
+function saveLocks(){ localStorage.setItem(STORAGE_LOCK, JSON.stringify(LOCKS)); }
 
+function fmtNumber(n){ return r(n).toFixed(DEC).replace('.', ','); }
 function row(label,val){
   return `<div class="row"><span>${label}</span><span>${fmtNumber(val)} g</span></div>`;
 }
 
 function fmtWeekdayAndDay(dateObj){
-  const weekday = new Intl.DateTimeFormat('es-ES', {
-    weekday: 'long',
-    timeZone: MADRID_TZ
-  }).format(dateObj);
-
-  const dayNum = new Intl.DateTimeFormat('es-ES', {
-    day: '2-digit',
-    timeZone: MADRID_TZ
-  }).format(dateObj);
-
+  const weekday = new Intl.DateTimeFormat('es-ES', { weekday:'long', timeZone: MADRID_TZ }).format(dateObj);
+  const dayNum = new Intl.DateTimeFormat('es-ES', { day:'2-digit', timeZone: MADRID_TZ }).format(dateObj);
   return { weekday, dayNum };
 }
-
-function fmtDateTimeMadrid(dateObj){
-  // "martes 20 a las 12:30"
-  const { weekday, dayNum } = fmtWeekdayAndDay(dateObj);
-
-  const time = new Intl.DateTimeFormat('es-ES', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-    timeZone: MADRID_TZ
+function fmtTime(dateObj){
+  return new Intl.DateTimeFormat('es-ES', {
+    hour:'2-digit', minute:'2-digit', hour12:false, timeZone: MADRID_TZ
   }).format(dateObj);
-
+}
+function fmtDateTimeMadrid(dateObj){
+  const { weekday, dayNum } = fmtWeekdayAndDay(dateObj);
+  const time = fmtTime(dateObj);
   return `${weekday} ${dayNum} a las ${time}`;
 }
-
 function fmtPreparedSmall(dateObj){
-  // más detalle: "Preparado el martes 20 a las 09:12"
-  return `Preparado el ${fmtDateTimeMadrid(dateObj)}`;
+  return `Preparad${isFemaleContext ? 'a' : 'o'} el ${fmtDateTimeMadrid(dateObj)}`;
 }
 
-function computeTotal(){
-  return Number($("pizzas").value) * Number($("gpp").value);
-}
-
-// Textos “ready”
+// Helpers para “ready”
 function starterReadyText(baseMs){
+  const ready = new Date(baseMs + STARTER_HOURS * 60 * 60 * 1000);
+  return `Estará listo el ${fmtDateTimeMadrid(ready)}`;
+}
+function starterReadyTextFromPrepared(baseMs){
   const ready = new Date(baseMs + STARTER_HOURS * 60 * 60 * 1000);
   return `Listo el ${fmtDateTimeMadrid(ready)}`;
 }
 
 function masaReadyHTML(baseMs){
-  // “noches en nevera”: +1 y +2 días, sin horas
+  const d1 = new Date(baseMs + 1 * 24 * 60 * 60 * 1000);
+  const d2 = new Date(baseMs + 2 * 24 * 60 * 60 * 1000);
+  const a = fmtWeekdayAndDay(d1);
+  const b = fmtWeekdayAndDay(d2);
+  return `Estará lista el ${a.weekday} ${a.dayNum} ¡o mejor!, el <strong>${b.weekday} ${b.dayNum}</strong>.`;
+}
+function masaReadyHTMLFromPrepared(baseMs){
   const d1 = new Date(baseMs + 1 * 24 * 60 * 60 * 1000);
   const d2 = new Date(baseMs + 2 * 24 * 60 * 60 * 1000);
   const a = fmtWeekdayAndDay(d1);
@@ -327,23 +283,22 @@ function masaReadyHTML(baseMs){
   return `Lista el ${a.weekday} ${a.dayNum} ¡o mejor!, el <strong>${b.weekday} ${b.dayNum}</strong>.`;
 }
 
-// Persist locks
-function saveLocks(){
-  localStorage.setItem(STORAGE_LOCK, JSON.stringify(LOCKS));
-}
-function savePct(){
-  localStorage.setItem(STORAGE_PCT, JSON.stringify(PCT));
+function computeTotal(){
+  return Number($("pizzas").value) * Number($("gpp").value);
 }
 
-// UI sync
+/* ----- Lock UI logic ----- */
 function syncLockUI(){
   $("starterLock").checked = !!LOCKS.starter.locked;
   $("masaLock").checked = !!LOCKS.masa.locked;
 
-  // tiny lines
+  $("starterEdit").disabled = !LOCKS.starter.locked;
+  $("masaEdit").disabled = !LOCKS.masa.locked;
+
+  // Tiny “preparado el …”
   if (LOCKS.starter.locked && LOCKS.starter.preparedAt){
     $("starterTiny").style.display = "block";
-    $("starterTiny").textContent = fmtPreparedSmall(new Date(LOCKS.starter.preparedAt));
+    $("starterTiny").textContent = `Preparado el ${fmtDateTimeMadrid(new Date(LOCKS.starter.preparedAt))}`;
   } else {
     $("starterTiny").style.display = "none";
     $("starterTiny").textContent = "";
@@ -351,7 +306,7 @@ function syncLockUI(){
 
   if (LOCKS.masa.locked && LOCKS.masa.preparedAt){
     $("masaTiny").style.display = "block";
-    $("masaTiny").textContent = fmtPreparedSmall(new Date(LOCKS.masa.preparedAt));
+    $("masaTiny").textContent = `Preparada el ${fmtDateTimeMadrid(new Date(LOCKS.masa.preparedAt))}`;
   } else {
     $("masaTiny").style.display = "none";
     $("masaTiny").textContent = "";
@@ -381,6 +336,62 @@ function buildConfig(){
   }
 }
 
+/* ----- Modal (datetime-local) ----- */
+let modalContext = null; // "starter" | "masa"
+
+function toDatetimeLocalValue(ms){
+  // Usamos el timezone del dispositivo para el input. En tu caso será Madrid.
+  // Formato: YYYY-MM-DDTHH:MM
+  const d = new Date(ms);
+  const pad = (n) => String(n).padStart(2,'0');
+  const yyyy = d.getFullYear();
+  const mm = pad(d.getMonth()+1);
+  const dd = pad(d.getDate());
+  const hh = pad(d.getHours());
+  const mi = pad(d.getMinutes());
+  return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+}
+
+function openModal(context){
+  modalContext = context;
+  const overlay = $("modalOverlay");
+  const input = $("modalDatetime");
+  const title = $("modalTitle");
+  const hint = $("modalHint");
+
+  const isStarter = context === "starter";
+  title.textContent = isStarter ? "Editar (starter)" : "Editar (masa)";
+
+  const baseMs = (LOCKS[context].preparedAt ?? Date.now());
+  input.value = toDatetimeLocalValue(baseMs);
+
+  hint.textContent = "Elige la fecha y hora en la que se preparó. La disponibilidad se recalculará automáticamente.";
+  overlay.style.display = "flex";
+}
+
+function closeModal(){
+  $("modalOverlay").style.display = "none";
+  modalContext = null;
+}
+
+$("modalCancel").addEventListener("click", closeModal);
+$("modalOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "modalOverlay") closeModal();
+});
+$("modalOk").addEventListener("click", () => {
+  if (!modalContext) return;
+  const val = $("modalDatetime").value; // "YYYY-MM-DDTHH:MM"
+  const ms = Date.parse(val);
+  if (!Number.isFinite(ms)) { closeModal(); return; }
+
+  LOCKS[modalContext].locked = true;
+  LOCKS[modalContext].preparedAt = ms;
+  saveLocks();
+  closeModal();
+  calc();
+});
+
+/* ----- Main render ----- */
 function calc(){
   const total = computeTotal();
 
@@ -402,41 +413,46 @@ function calc(){
     ${row('Levadura starter', g(total,PCT.levaduraStarter))}
   `;
 
-  // Base para tiempos: ahora o fecha fijada
   const nowMs = Date.now();
-  const starterBase = (LOCKS.starter.locked && LOCKS.starter.preparedAt) ? LOCKS.starter.preparedAt : nowMs;
-  const masaBase = (LOCKS.masa.locked && LOCKS.masa.preparedAt) ? LOCKS.masa.preparedAt : nowMs;
 
-  $("readyNote").textContent = starterReadyText(starterBase);
-  $("masaNote").innerHTML = masaReadyHTML(masaBase);
+  // Starter
+  if (!LOCKS.starter.locked || !LOCKS.starter.preparedAt){
+    $("readyNote").textContent = starterReadyText(nowMs);
+  } else {
+    $("readyNote").textContent = starterReadyTextFromPrepared(LOCKS.starter.preparedAt);
+  }
+
+  // Masa
+  if (!LOCKS.masa.locked || !LOCKS.masa.preparedAt){
+    $("masaNote").innerHTML = masaReadyHTML(nowMs);
+  } else {
+    $("masaNote").innerHTML = masaReadyHTMLFromPrepared(LOCKS.masa.preparedAt);
+  }
 
   syncLockUI();
 }
 
-// Events
+/* ----- Events ----- */
 $("pizzas").addEventListener("input", calc);
 $("gpp").addEventListener("input", calc);
 
-// Config inputs live
+// Config live
 $("cfg").addEventListener("input", (e) => {
   const k = e.target?.dataset?.k;
   if (!k) return;
   PCT[k] = Number(e.target.value);
   calc();
 });
+$("save").addEventListener("click", savePct);
 
-$("save").addEventListener("click", () => {
-  savePct();
-});
-
-// Lock checkboxes
+// Lock toggles: al marcar, fija "ahora"
 $("starterLock").addEventListener("change", (e) => {
   if (e.target.checked){
     LOCKS.starter.locked = true;
     LOCKS.starter.preparedAt = Date.now();
   } else {
-    // si desmarcas, vuelve a modo live pero mantiene preparedAt por si luego quieres (opcional).
     LOCKS.starter.locked = false;
+    LOCKS.starter.preparedAt = null;
   }
   saveLocks();
   calc();
@@ -448,32 +464,36 @@ $("masaLock").addEventListener("change", (e) => {
     LOCKS.masa.preparedAt = Date.now();
   } else {
     LOCKS.masa.locked = false;
+    LOCKS.masa.preparedAt = null;
   }
   saveLocks();
   calc();
 });
 
-// Reset buttons (borra todo y vuelve a live)
+// Edit
+$("starterEdit").addEventListener("click", () => openModal("starter"));
+$("masaEdit").addEventListener("click", () => openModal("masa"));
+
+// Reset
 $("starterReset").addEventListener("click", () => {
   LOCKS.starter = { locked:false, preparedAt:null };
   saveLocks();
   calc();
 });
-
 $("masaReset").addEventListener("click", () => {
   LOCKS.masa = { locked:false, preparedAt:null };
   saveLocks();
   calc();
 });
 
-// Refresco cada minuto SOLO para las secciones no fijadas
+// Tick cada minuto: solo si alguno está en modo “no fijado”
 setInterval(() => {
   const anyLive = (!LOCKS.starter.locked) || (!LOCKS.masa.locked);
   if (!anyLive) return;
   calc();
 }, 60 * 1000);
 
-// Init
+/* ----- Init ----- */
 buildConfig();
 calc();
 </script>
